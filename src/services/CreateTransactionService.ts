@@ -1,7 +1,7 @@
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
 
-interface Request{
+interface Request {
   title: string;
   value: number;
   type: 'income' | 'outcome';
@@ -14,11 +14,21 @@ class CreateTransactionService {
     this.transactionsRepository = transactionsRepository;
   }
 
-  public execute({title, value, type}:Request ): Transaction {
+  public execute({ title, value, type }: Request): Transaction {
+    const { total } = this.transactionsRepository.getBalance();
+
+    if (!['income', 'outcome'].includes(type)) {
+      throw new Error('Transaction type is invalid.');
+    }
+
+    if (type === 'outcome' && total < value) {
+      throw new Error("you don't have enough balance");
+    }
+
     const transaction = this.transactionsRepository.create({
       title,
       value,
-      type
+      type,
     });
 
     return transaction;
